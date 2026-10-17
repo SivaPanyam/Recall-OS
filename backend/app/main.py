@@ -4,8 +4,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.routes import health
+from app.api.routes import health, memories
 from app.core.config import settings
+from app.core.database import initialize_database
 from app.core.logging_config import configure_logging
 from app.models.schemas import RootResponse
 
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting %s", settings.app_name)
+    initialize_database()
     yield
     logger.info("Shutting down %s", settings.app_name)
 
@@ -28,6 +30,7 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
+app.include_router(memories.router, prefix=settings.api_prefix)
 
 
 @app.get("/", response_model=RootResponse)
